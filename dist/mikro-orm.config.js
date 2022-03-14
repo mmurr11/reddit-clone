@@ -8,8 +8,8 @@ const Post_1 = require("./entities/Post");
 const path_1 = __importDefault(require("path"));
 exports.default = {
     migrations: {
-        path: path_1.default.join(__dirname, './migrations'),
-        pattern: /^[/w]+\d+\.[tj]s$/,
+        path: path_1.default.join(__dirname, "./migrations"),
+        pattern: /^[\w-]+\d+\.[tj]s$/,
     },
     entities: [Post_1.Post],
     dbName: 'redditClone',

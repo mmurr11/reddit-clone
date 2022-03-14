@@ -6,8 +6,8 @@ import path from 'path'
 
 export default {
     migrations: {
-        path: path.join(__dirname, './migrations'),
-        pattern: /^[/w]+\d+\.[tj]s$/,
+        path: path.join(__dirname, "./migrations"),
+        pattern: /^[\w-]+\d+\.[tj]s$/,
     },
     entities: [Post],
     dbName: 'redditClone',
