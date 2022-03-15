@@ -18,6 +18,7 @@
     "@mikro-orm/migrations": "4.5",
     "@mikro-orm/postgresql": "4.5",
     "apollo-server-express": "2.16.1",
+    "argon2": "^0.28.5",
     "express": "^4.17.3",
     "graphql": "15.3.0",
     "nodemon": "^2.0.15",
