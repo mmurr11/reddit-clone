@@ -4,7 +4,6 @@ import { __prod__ } from './constants';
 import microConfig from "./mikro-orm.config";
 import express from 'express'
 import { ApolloServer } from'apollo-server-express'
-import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import http from 'http';
 import { buildSchema } from 'type-graphql'
 import { HelloResolver } from './resolvers/hello';
