@@ -9,20 +9,22 @@ const constants_1 = require("./constants");
 const mikro_orm_config_1 = __importDefault(require("./mikro-orm.config"));
 const express_1 = __importDefault(require("express"));
 const apollo_server_express_1 = require("apollo-server-express");
+const http_1 = __importDefault(require("http"));
 const type_graphql_1 = require("type-graphql");
 const hello_1 = require("./resolvers/hello");
 const post_1 = require("./resolvers/post");
 const user_1 = require("./resolvers/user");
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
-const redis_1 = require("redis");
+const { createClient } = require('redis');
+const apollo_server_core_1 = require("apollo-server-core");
 const main = async () => {
     const orm = await core_1.MikroORM.init(mikro_orm_config_1.default);
     await orm.getMigrator().up();
     const app = express_1.default();
-    const redisClient = redis_1.createClient();
-    redisClient.on('error', (err) => console.log('Redis Client Error', err));
-    await redisClient.connect();
+    const httpServer = http_1.default.createServer(app);
+    const redisClient = createClient({ legacyMode: true });
+    await redisClient.connect().catch(console.error);
     app.use(session({
         name: 'qid',
         store: new RedisStore({
@@ -31,27 +33,30 @@ const main = async () => {
         }),
         cookie: {
             maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
-            httpOnly: false,
+            httpOnly: true,
             sameSite: "lax",
             secure: constants_1.__prod__,
             domain: '.localhost',
-            path: "/"
+            path: "/",
         },
-        saveUninitialized: true,
-        secret: 'dfdzfvb',
-        resave: false
+        saveUninitialized: false,
+        secret: 'keyboard cat',
+        resave: false,
     }));
     const apolloServer = new apollo_server_express_1.ApolloServer({
         schema: await type_graphql_1.buildSchema({
             resolvers: [hello_1.HelloResolver, post_1.PostResolver, user_1.UserResolver],
             validate: false,
         }),
-        context: ({ req, res }) => ({ em: orm.em, req, res })
+        context: ({ req, res }) => ({ em: orm.em, req, res }),
+        plugins: [
+            apollo_server_core_1.ApolloServerPluginLandingPageGraphQLPlayground(),
+        ],
     });
+    await apolloServer.start();
     apolloServer.applyMiddleware({ app });
-    app.listen(4000, () => {
-        console.log('server started on localhost:4000');
-    });
+    await new Promise(resolve => httpServer.listen({ port: 4000 }, resolve));
+    console.log(`🚀 Server ready at http://localhost:4000${apolloServer.graphqlPath}`);
 };
 main();
 //# sourceMappingURL=index.js.map

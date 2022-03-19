@@ -1,10 +1,11 @@
 import { MikroORM } from "@mikro-orm/core"
 import 'reflect-metadata'
 import { __prod__ } from './constants';
-import { Post } from "./entities/Post";
 import microConfig from "./mikro-orm.config";
 import express from 'express'
 import { ApolloServer } from'apollo-server-express'
+import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
+import http from 'http';
 import { buildSchema } from 'type-graphql'
 import { HelloResolver } from './resolvers/hello';
 import { PostResolver } from './resolvers/post';
@@ -12,7 +13,8 @@ import { UserResolver } from './resolvers/user';
 import { MyContext } from 'src/types';
 const session = require('express-session')
 const RedisStore = require('connect-redis')(session)
-import { createClient } from 'redis';
+const { createClient } = require('redis')
+import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 
 
 const main = async () => {
@@ -21,10 +23,10 @@ const main = async () => {
     await orm.getMigrator().up()
 
     const app = express()
-
-    const redisClient = createClient();
-    redisClient.on('error', (err) => console.log('Redis Client Error', err));
-    await redisClient.connect();
+    const httpServer = http.createServer(app);
+    
+    const redisClient = createClient({ legacyMode: true })
+    await redisClient.connect().catch(console.error);
 
     app.use(
         session({
@@ -35,32 +37,35 @@ const main = async () => {
                 }),
                 cookie: {
                     maxAge: 1000 * 60 * 60 * 24 * 365 * 10, //10 yrs
-                    httpOnly: false,
+                    httpOnly: true,
                     sameSite: "lax",
                     secure: __prod__,
                     domain:'.localhost',
-                    path: "/"
+                    path: "/",
                 },
-            saveUninitialized: true,
-            secret: 'dfdzfvb',
-            resave: false
-        })
+            saveUninitialized: false,
+            secret: 'keyboard cat',
+            resave: false,
+        }),
     )
 
-    const apolloServer = new ApolloServer({
-        schema: await buildSchema({
-            resolvers: [HelloResolver, PostResolver, UserResolver],
-            validate: false,
-        }),
-        context: ({ req, res }: MyContext): MyContext => ({ em: orm.em, req, res })
-    })
 
-    apolloServer.applyMiddleware({ app })
+        const apolloServer = new ApolloServer({
+            schema: await buildSchema({
+                resolvers: [HelloResolver, PostResolver, UserResolver],
+                validate: false,
+            }),
+            context: ({ req, res }: MyContext): MyContext => ({ em: orm.em, req, res }),
+            plugins: [
+                ApolloServerPluginLandingPageGraphQLPlayground(),
+            ],
+        })
+        await apolloServer.start();
+        apolloServer.applyMiddleware({ app });
+        await new Promise<void>(resolve => httpServer.listen({ port: 4000 }, resolve));
+        console.log(`🚀 Server ready at http://localhost:4000${apolloServer.graphqlPath}`);
+    } 
 
-    app.listen(4000, () => {
-        console.log('server started on localhost:4000')
-    })
-}
 
 
 main()

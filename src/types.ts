@@ -16,6 +16,6 @@ interface ExtendedRequest extends Request {
 
 export type MyContext = {
     em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>
-    req: ExtendedRequest & {session: {userId?: number}}
+    req: ExtendedRequest & {session: {userId: number}}
     res: Response
 }
