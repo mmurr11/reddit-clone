@@ -27,7 +27,7 @@ const main = async () => {
     const redisClient = createClient({ legacyMode: true });
     await redisClient.connect().catch(console.error);
     app.use(cors_1.default({
-        origin: "http:localhost:3000",
+        origin: "http://localhost:3000",
         credentials: true
     }));
     app.use(session({
