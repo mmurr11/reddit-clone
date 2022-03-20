@@ -9,11 +9,11 @@ import { buildSchema } from 'type-graphql'
 import { HelloResolver } from './resolvers/hello';
 import { PostResolver } from './resolvers/post';
 import { UserResolver } from './resolvers/user';
-import { MyContext } from 'src/types';
 const session = require('express-session')
 const RedisStore = require('connect-redis')(session)
 const { createClient } = require('redis')
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
+import cors from 'cors'
 
 
 const main = async () => {
@@ -26,6 +26,12 @@ const main = async () => {
     
     const redisClient = createClient({ legacyMode: true })
     await redisClient.connect().catch(console.error);
+    app.use(
+        cors({
+            origin: "http:localhost:3000",
+            credentials: true
+        })
+    )
 
     app.use(
         session({
@@ -54,13 +60,16 @@ const main = async () => {
                 resolvers: [HelloResolver, PostResolver, UserResolver],
                 validate: false,
             }),
-            context: ({ req, res }: MyContext): MyContext => ({ em: orm.em, req, res }),
+            context: ({ req, res }) => ({ em: orm.em, req, res }),
             plugins: [
                 ApolloServerPluginLandingPageGraphQLPlayground(),
             ],
         })
         await apolloServer.start();
-        apolloServer.applyMiddleware({ app });
+        apolloServer.applyMiddleware({ 
+            app,
+            cors: false
+        });
         await new Promise<void>(resolve => httpServer.listen({ port: 4000 }, resolve));
         console.log(`🚀 Server ready at http://localhost:4000${apolloServer.graphqlPath}`);
     } 

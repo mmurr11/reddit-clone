@@ -18,6 +18,7 @@ const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
 const { createClient } = require('redis');
 const apollo_server_core_1 = require("apollo-server-core");
+const cors_1 = __importDefault(require("cors"));
 const main = async () => {
     const orm = await core_1.MikroORM.init(mikro_orm_config_1.default);
     await orm.getMigrator().up();
@@ -25,6 +26,10 @@ const main = async () => {
     const httpServer = http_1.default.createServer(app);
     const redisClient = createClient({ legacyMode: true });
     await redisClient.connect().catch(console.error);
+    app.use(cors_1.default({
+        origin: "http:localhost:3000",
+        credentials: true
+    }));
     app.use(session({
         name: 'qid',
         store: new RedisStore({
@@ -54,7 +59,10 @@ const main = async () => {
         ],
     });
     await apolloServer.start();
-    apolloServer.applyMiddleware({ app });
+    apolloServer.applyMiddleware({
+        app,
+        cors: false
+    });
     await new Promise(resolve => httpServer.listen({ port: 4000 }, resolve));
     console.log(`🚀 Server ready at http://localhost:4000${apolloServer.graphqlPath}`);
 };
