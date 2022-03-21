@@ -85,15 +85,15 @@ export type User = {
   username: Scalars['String'];
 };
 
-export type UsernamePasswordInput = {
-  password: Scalars['String'];
-  username: Scalars['String'];
-};
-
 export type UserResponse = {
   __typename?: 'UserResponse';
   errors?: Maybe<Array<FieldError>>;
   user?: Maybe<User>;
+};
+
+export type UsernamePasswordInput = {
+  password: Scalars['String'];
+  username: Scalars['String'];
 };
 
 export type LoginMutationVariables = Exact<{

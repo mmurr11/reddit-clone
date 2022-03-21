@@ -25,10 +25,10 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     // user is logged in
   } else {
     body = (
-      <Box>
-        <Box>{data.me.username}</Box>
+      <Flex>
+        <Box mr={2}>{data.me.username}</Box>
         <Button>Logout</Button>
-      </Box>
+      </Flex>
     );
   }
 
