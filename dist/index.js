@@ -19,8 +19,10 @@ const RedisStore = require('connect-redis')(session);
 const { createClient } = require('redis');
 const apollo_server_core_1 = require("apollo-server-core");
 const cors_1 = __importDefault(require("cors"));
+const User_1 = require("./entities/User");
 const main = async () => {
     const orm = await core_1.MikroORM.init(mikro_orm_config_1.default);
+    await orm.em.nativeDelete(User_1.User, {});
     await orm.getMigrator().up();
     const app = express_1.default();
     const httpServer = http_1.default.createServer(app);
