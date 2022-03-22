@@ -15,7 +15,6 @@ const { createClient } = require('redis')
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 import cors from 'cors'
 
-
 const main = async () => {
 
     const orm = await MikroORM.init(microConfig)
