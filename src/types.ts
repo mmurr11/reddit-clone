@@ -1,6 +1,7 @@
 import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core";
 import { Request, Response } from "express"
 import { Session, SessionData } from 'express-session';
+import { Redis } from "ioredis";
 
 declare module 'express-session' {
   export interface Session {
@@ -17,5 +18,6 @@ interface ExtendedRequest extends Request {
 export type MyContext = {
     em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>
     req: ExtendedRequest & {session: {userId: number}}
+    redis: Redis
     res: Response
 }
