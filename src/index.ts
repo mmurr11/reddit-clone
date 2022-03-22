@@ -14,12 +14,10 @@ const RedisStore = require('connect-redis')(session)
 const { createClient } = require('redis')
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 import cors from 'cors'
-import { User } from "./entities/User";
 
 const main = async () => {
 
     const orm = await MikroORM.init(microConfig)
-    await orm.em.nativeDelete(User, {})
     await orm.getMigrator().up()
 
     const app = express()
