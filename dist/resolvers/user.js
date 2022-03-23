@@ -51,7 +51,7 @@ UserResponse = __decorate([
     type_graphql_1.ObjectType()
 ], UserResponse);
 let UserResolver = class UserResolver {
-    async ChangePassword(token, newPassword, { redis, em, req }) {
+    async changePassword(token, newPassword, { redis, em, req }) {
         if (newPassword.length <= 2) {
             return { errors: [
                     {
@@ -60,7 +60,8 @@ let UserResolver = class UserResolver {
                     }
                 ] };
         }
-        const userId = await redis.get(constants_1.FORGET_PASSWORD_PREFIX + token);
+        const key = constants_1.FORGET_PASSWORD_PREFIX + token;
+        const userId = await redis.get(key);
         if (!userId) {
             return { errors: [
                     {
@@ -80,6 +81,7 @@ let UserResolver = class UserResolver {
         }
         user.password = await argon2_1.default.hash(newPassword);
         em.persistAndFlush(user);
+        redis.del(key);
         req.session.userId = user.id;
         return { user };
     }
@@ -180,7 +182,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
-], UserResolver.prototype, "ChangePassword", null);
+], UserResolver.prototype, "changePassword", null);
 __decorate([
     type_graphql_1.Mutation(() => Boolean),
     __param(0, type_graphql_1.Arg('email')),
