@@ -31,6 +31,7 @@
     "reflect-metadata": "0.1.13",
     "ts-node": "^10.7.0",
     "type-graphql": "^1.1.1",
+    "typeorm": "^0.3.3",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

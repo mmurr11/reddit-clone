@@ -19,7 +19,19 @@ const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
 const apollo_server_core_1 = require("apollo-server-core");
 const cors_1 = __importDefault(require("cors"));
+const typeorm_1 = require("typeorm");
+const Post_1 = require("./entities/Post");
+const User_1 = require("./entities/User");
 const main = async () => {
+    const conn = await typeorm_1.createConnection({
+        type: 'postgres',
+        database: 'lireddit2',
+        username: 'postgres',
+        password: 'postgres',
+        logging: true,
+        synchronize: true,
+        entities: [Post_1.Post, User_1.User]
+    });
     const orm = await core_1.MikroORM.init(mikro_orm_config_1.default);
     await orm.getMigrator().up();
     const app = express_1.default();
