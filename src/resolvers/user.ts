@@ -8,6 +8,7 @@ import { validateRegister } from '../utils/validateRegister';
 import { sendEmail } from '../utils/sendEmail';
 import { v4 } from 'uuid'
 import { FORGET_PASSWORD_PREFIX, COOKIE_NAME } from '../constants';
+import { getConnection } from 'typeorm';
 
 @ObjectType()
 class FieldError {
@@ -33,7 +34,7 @@ export class UserResolver {
     async changePassword(
         @Arg('token') token: string,
         @Arg('newPassword') newPassword: string,
-        @Ctx() {redis, em, req}: MyContext
+        @Ctx() {redis, req}: MyContext
     ): Promise<UserResponse> {
 
         if (newPassword.length <= 2) {
@@ -47,6 +48,7 @@ export class UserResolver {
 
         const key =  FORGET_PASSWORD_PREFIX+token  
         const userId = await redis.get(key)
+
         if (!userId) {
             
             return { errors: [
@@ -57,7 +59,9 @@ export class UserResolver {
             ]}
         }
 
-        const user = await em.findOne(User, { id: parseInt(userId) })
+        const userIdNum = parseInt(userId)
+        const user = await User.findOne(userIdNum)
+
         if (!user) {
             return { errors: [
                 {
@@ -67,8 +71,7 @@ export class UserResolver {
             ]}
         }
 
-        user.password = await argon2.hash(newPassword)
-        em.persistAndFlush(user)
+        User.update({id: userIdNum}, {password: await argon2.hash(newPassword)})
         redis.del(key)
         req.session.userId = user.id
         return { user }
@@ -78,9 +81,9 @@ export class UserResolver {
     @Mutation(() => Boolean)
     async forgotPassword(
         @Arg('email') email: string,
-        @Ctx() {em, redis} : MyContext
+        @Ctx() {redis} : MyContext
     ) {
-        const user = await em.findOne(User, {email})
+        const user = await User.findOne({where: {email}})
         if (!user) {
             // email is not in db
             return true
@@ -94,20 +97,19 @@ export class UserResolver {
     }
 
     @Query(() => User, {nullable: true})
-    async me(@Ctx() { req, em } : MyContext) {
+    me(@Ctx() { req } : MyContext) {
         // user is not logged in
         if (!req.session.userId) {
             return null
         }
 
-        const user = await em.findOne(User, { id: req.session.userId })
-        return user
+        return User.findOne(req.session.userId)
     }
 
     @Mutation(() => UserResponse)
     async register(
         @Arg('options') options: UsernamePasswordInput,
-        @Ctx() { em, req }: MyContext
+        @Ctx() { req }: MyContext
         ): Promise<UserResponse> {
             const errors = validateRegister(options)
             if (errors) {
@@ -116,14 +118,13 @@ export class UserResolver {
             const hashedPassword = await argon2.hash(options.password)
             let user
             try {
-                 const result = await (em as EntityManager).createQueryBuilder(User).getKnexQuery().insert({
+                 const result = await getConnection().createQueryBuilder().insert().into(User).values({
                     username: options.username,
                     password: hashedPassword,
-                    email: options.email,
-                    created_at: new Date(),
-                    updated_at: new Date()
-                }).returning("*")
-                user = result[0]
+                    email: options.email
+                }).returning('*').execute()
+                console.log("result", result)
+                user = result.raw[0]
             } catch (err) {
                 console.log(err)
                 if (err.detail.includes("already exists")) {
@@ -151,9 +152,9 @@ export class UserResolver {
     async login(
         @Arg("usernameOrEmail") usernameOrEmail: string,
         @Arg("password") password: string,
-        @Ctx() { em, req }: MyContext
+        @Ctx() { req }: MyContext
         ): Promise<UserResponse> {
-        const user = await em.findOne(User, 
+        const user = await User.findOne( 
             usernameOrEmail.includes("@") ? { email: usernameOrEmail }
             : { username: usernameOrEmail }
             )
