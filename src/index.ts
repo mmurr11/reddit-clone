@@ -14,9 +14,21 @@ const session = require('express-session')
 const RedisStore = require('connect-redis')(session)
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 import cors from 'cors'
+import {createConnection} from 'typeorm'
+import { Post } from "./entities/Post";
+import { User } from "./entities/User";
 
 const main = async () => {
 
+    const conn = await createConnection({
+        type: 'postgres',
+        database: 'lireddit2',
+        username: 'postgres',
+        password: 'postgres',
+        logging: true,
+        synchronize: true,
+        entities: [Post, User]
+    })
     const orm = await MikroORM.init(microConfig)
     await orm.getMigrator().up()
 
