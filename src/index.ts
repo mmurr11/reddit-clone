@@ -1,7 +1,5 @@
-import { MikroORM } from "@mikro-orm/core"
 import 'reflect-metadata'
 import { __prod__, COOKIE_NAME } from './constants';
-import microConfig from "./mikro-orm.config";
 import express from 'express'
 import { ApolloServer } from'apollo-server-express'
 import http from 'http';
@@ -29,8 +27,6 @@ const main = async () => {
         synchronize: true,
         entities: [Post, User]
     })
-    const orm = await MikroORM.init(microConfig)
-    await orm.getMigrator().up()
 
     const app = express()
     const httpServer = http.createServer(app);
@@ -71,7 +67,7 @@ const main = async () => {
                 resolvers: [HelloResolver, PostResolver, UserResolver],
                 validate: false,
             }),
-            context: ({ req, res }) => ({ em: orm.em, req, res, redis}),
+            context: ({ req, res }) => ({ req, res, redis}),
             plugins: [
                 ApolloServerPluginLandingPageGraphQLPlayground(),
             ],

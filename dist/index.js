@@ -3,10 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const core_1 = require("@mikro-orm/core");
 require("reflect-metadata");
 const constants_1 = require("./constants");
-const mikro_orm_config_1 = __importDefault(require("./mikro-orm.config"));
 const express_1 = __importDefault(require("express"));
 const apollo_server_express_1 = require("apollo-server-express");
 const http_1 = __importDefault(require("http"));
@@ -32,8 +30,6 @@ const main = async () => {
         synchronize: true,
         entities: [Post_1.Post, User_1.User]
     });
-    const orm = await core_1.MikroORM.init(mikro_orm_config_1.default);
-    await orm.getMigrator().up();
     const app = express_1.default();
     const httpServer = http_1.default.createServer(app);
     const redis = new ioredis_1.default();
@@ -65,7 +61,7 @@ const main = async () => {
             resolvers: [hello_1.HelloResolver, post_1.PostResolver, user_1.UserResolver],
             validate: false,
         }),
-        context: ({ req, res }) => ({ em: orm.em, req, res, redis }),
+        context: ({ req, res }) => ({ req, res, redis }),
         plugins: [
             apollo_server_core_1.ApolloServerPluginLandingPageGraphQLPlayground(),
         ],
