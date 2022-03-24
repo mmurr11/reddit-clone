@@ -2,7 +2,6 @@ import { Resolver, Mutation, Arg, Field, Ctx, ObjectType, Query } from 'type-gra
 import { MyContext } from 'src/types'
 import { User } from '../entities/User'
 import argon2 from 'argon2'
-import { EntityManager } from '@mikro-orm/postgresql';
 import { UsernamePasswordInput } from './UsernamePasswordInput';
 import { validateRegister } from '../utils/validateRegister';
 import { sendEmail } from '../utils/sendEmail';
@@ -118,12 +117,12 @@ export class UserResolver {
             const hashedPassword = await argon2.hash(options.password)
             let user
             try {
+                
                  const result = await getConnection().createQueryBuilder().insert().into(User).values({
                     username: options.username,
                     password: hashedPassword,
                     email: options.email
                 }).returning('*').execute()
-                console.log("result", result)
                 user = result.raw[0]
             } catch (err) {
                 console.log(err)
@@ -155,9 +154,10 @@ export class UserResolver {
         @Ctx() { req }: MyContext
         ): Promise<UserResponse> {
         const user = await User.findOne( 
-            usernameOrEmail.includes("@") ? { email: usernameOrEmail }
-            : { username: usernameOrEmail }
-            )
+            usernameOrEmail.includes('@')
+            ? { where: { email: usernameOrEmail } }
+            : { where: { username: usernameOrEmail } }
+        )
         if (!user) {
             return {
                 errors: [{
