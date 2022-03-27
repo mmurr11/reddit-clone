@@ -17,7 +17,6 @@ const type_graphql_1 = require("type-graphql");
 const Post_1 = require("../entities/Post");
 const isAuth_1 = require("../middleware/isAuth");
 const typeorm_1 = require("typeorm");
-const Updoot_1 = require("../entities/Updoot");
 let PostInput = class PostInput {
 };
 __decorate([
@@ -52,20 +51,23 @@ let PostResolver = class PostResolver {
         const isUpdoot = value !== -1;
         const realValue = isUpdoot ? 1 : -1;
         const { userId } = req.session;
-        await Updoot_1.Updoot.insert({
-            userId,
-            postId,
-            value: realValue,
-        });
         await typeorm_1.getConnection().query(`
+
+            START TRANSACTION;
+
+            insert into updoot ("userId", "postId", value)
+            values (${userId}, ${postId}, ${realValue});
+
             update post
-            set points = points + $1
-            where id = $2
-        `, [realValue, postId]);
+            set points = points + ${realValue}
+            where id = ${postId};
+
+            COMMIT;
+
+        `);
         return true;
     }
     async posts(limit, cursor) {
-        console.log("limit: ", limit, typeof limit);
         const realLimit = Math.min(50, limit);
         const realLimitPlusOne = Math.min(50, limit) + 1;
         const replacements = [realLimitPlusOne];
@@ -95,7 +97,6 @@ let PostResolver = class PostResolver {
             .innerJoinAndSelect("p.creator", "u", 'u.id = p."creatorId"')
             .orderBy('p."createdAt"', "DESC")
             .take(realLimitPlusOne);
-        console.log('posts: ', posts);
         return { posts: posts.slice(0, realLimit), hasMore: posts.length === realLimitPlusOne };
     }
     post(id) {
