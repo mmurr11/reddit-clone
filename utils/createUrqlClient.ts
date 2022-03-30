@@ -1,10 +1,12 @@
 import { dedupExchange, fetchExchange, stringifyVariables } from "urql";
-import { LogoutMutation, MeQuery, MeDocument, LoginMutation, RegisterMutation } from "../src/generated/graphql";
+import { LogoutMutation, MeQuery, MeDocument, LoginMutation, RegisterMutation, VoteMutationVariables } from "../src/generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 import { cacheExchange, Resolver } from '@urql/exchange-graphcache';
 import { pipe, tap } from 'wonka';
 import { Exchange } from 'urql';
 import Router from "next/router";
+import { isServer } from "./isServer";
+import gql from 'graphql-tag'
 
 export const errorExchange: Exchange = ({ forward }) => (ops$) => {
   return pipe(
@@ -52,66 +54,23 @@ export const cursorPagination = (): Resolver => {
       __typename: 'PaginatedPosts',
       hasMore,
       posts: results
-    };
-
-    // const visited = new Set();
-    // let result: NullArray<string> = [];
-    // let prevOffset: number | null = null;
-
-    // for (let i = 0; i < size; i++) {
-    //   const { fieldKey, arguments: args } = fieldInfos[i];
-    //   if (args === null || !compareArgs(fieldArgs, args)) {
-    //     continue;
-    //   }
-
-    //   const links = cache.resolve(entityKey, fieldKey) as string[];
-    //   const currentOffset = args[cursorArgument];
-
-    //   if (
-    //     links === null ||
-    //     links.length === 0 ||
-    //     typeof currentOffset !== 'number'
-    //   ) {
-    //     continue;
-    //   }
-
-    //   const tempResult: NullArray<string> = [];
-
-    //   for (let j = 0; j < links.length; j++) {
-    //     const link = links[j];
-    //     if (visited.has(link)) continue;
-    //     tempResult.push(link);
-    //     visited.add(link);
-    //   }
-
-    //   if (
-    //     (!prevOffset || currentOffset > prevOffset) ===
-    //     (mergeMode === 'after')
-    //   ) {
-    //     result = [...result, ...tempResult];
-    //   } else {
-    //     result = [...tempResult, ...result];
-    //   }
-
-    //   prevOffset = currentOffset;
-    // }
-
-    // const hasCurrentPage = cache.resolve(entityKey, fieldName, fieldArgs);
-    // if (hasCurrentPage) {
-    //   return result;
-    // } else if (!(info as any).store.schema) {
-    //   return undefined;
-    // } else {
-    //   info.partial = true;
-    //   return result;
-    // }
+    }
   };
 };
 
-export const createUrqlClient = (ssrExchange: any) => ({
+export const createUrqlClient = (ssrExchange: any, ctx: any) => {
+    let cookie = '';
+    if (isServer()) { 
+    console.log(ctx?.req?.headers.cookie);
+    cookie = ctx?.req?.headers?.cookie;
+    }
+  return {
   url: "http://localhost:4000/graphql",
   fetchOptions: {
     credentials: "include" as const,
+    headers: cookie ? {
+      cookie
+    } : undefined
   },
   exchanges: [
     dedupExchange,
@@ -126,6 +85,39 @@ export const createUrqlClient = (ssrExchange: any) => ({
       },
       updates: {
         Mutation: {
+
+          vote: (_result, args, cache, info) => {
+            const {postId, value} = args as VoteMutationVariables
+            const data = cache.readFragment(
+              gql`
+                fragment _ on Post {
+                  id
+                  points
+                  voteStatus
+                }
+              `,
+              { id: postId } as any
+            );              
+            console.log('data', data)
+            if (data) {
+              if (data.voteStatus === value) {
+                return
+              }
+
+              // if voteStatus is true, if vote is changed, +/- 2 to the points
+              const newPoints = (data.points as number) + ((!data.voteStatus ? 1 : 2)* value) 
+              cache.writeFragment(
+                gql`
+
+                fragment __ on Post {
+                  points
+                  voteStatus
+                }
+                `,
+                { id: postId, points: newPoints, voteStatus: value } as any
+              )
+            }
+          },
 
           createPost: (_result, args, cache, info) => {
             const allFields = cache.inspectFields('Query');
@@ -180,8 +172,8 @@ export const createUrqlClient = (ssrExchange: any) => ({
       }
     }),
     errorExchange,
+    ssrExchange,
     fetchExchange,
-    ssrExchange
-  ]
-}) 
-
+  ],
+} 
+}

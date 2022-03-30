@@ -9,9 +9,10 @@ import { Layout } from "../components/Layout";
 import { useCreatePostMutation } from "../generated/graphql";
 
 const CreatePost: React.FC<{}> = ({}) => {
-  const [, createPost] = useCreatePostMutation();
   const router = useRouter();
   useIsAuth();
+  const [, createPost] = useCreatePostMutation();
+
   return (
     <Layout variant="small">
       <Formik
