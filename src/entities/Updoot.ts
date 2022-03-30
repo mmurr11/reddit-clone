@@ -1,4 +1,3 @@
-import { ObjectType, Field } from 'type-graphql';
 import { Entity, BaseEntity, ManyToOne, PrimaryColumn, Column } from 'typeorm';
 import { User } from './User';
 import { Post } from './Post';
@@ -16,7 +15,7 @@ export class Updoot extends BaseEntity{
     user: number;
 
     @PrimaryColumn()
-    postId!: number;
+    postId: number;
 
     @ManyToOne(() => Post, (post) => post.updoots)
     post: Post;
