@@ -1,21 +1,20 @@
-import { createUrqlClient } from "../../utils/createUrqlClient";
-import { withUrqlClient } from "next-urql";
-import { usePostsQuery, useDeletePostMutation } from "../generated/graphql";
-import { Layout } from "../components/Layout";
 import {
-  Text,
+  Box,
+  Button,
+  Flex,
+  Heading,
   Link,
   Stack,
-  Box,
-  Heading,
-  Flex,
-  Button,
-  IconButton,
+  Text,
 } from "@chakra-ui/react";
+import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import { useState } from "react";
-import { ChevronDownIcon, ChevronUpIcon, DeleteIcon } from "@chakra-ui/icons";
+import { createUrqlClient } from "../../utils/createUrqlClient";
+import { EditDeletePostButtons } from "../components/EditDeletePostButtons";
+import { Layout } from "../components/Layout";
 import { UpdootSection } from "../components/UpdootSection";
+import { useDeletePostMutation, usePostsQuery } from "../generated/graphql";
 
 const Index = () => {
   const [variables, setVariables] = useState({
@@ -54,14 +53,6 @@ const Index = () => {
                     <Text flex={1} mt={4}>
                       {p.textSnippet + " ..."}
                     </Text>
-                    <IconButton
-                      ml="auto"
-                      icon={<DeleteIcon />}
-                      aria-label="delete post"
-                      onClick={() => {
-                        deletePost({ id: p.id });
-                      }}
-                    />
                   </Flex>
                 </Box>
               </Flex>
