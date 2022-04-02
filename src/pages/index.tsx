@@ -11,7 +11,6 @@ import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import { useState } from "react";
 import { createUrqlClient } from "../../utils/createUrqlClient";
-import { EditDeletePostButtons } from "../components/EditDeletePostButtons";
 import { Layout } from "../components/Layout";
 import { UpdootSection } from "../components/UpdootSection";
 import { useDeletePostMutation, usePostsQuery } from "../generated/graphql";
@@ -56,7 +55,7 @@ const Index = () => {
                   <Text>Posted by: {p.creator.username}</Text>
                   <Flex align="center">
                     <Text flex={1} mt={4}>
-                      {p.textSnippet + " ..."}
+                      {p.textSnippet}
                     </Text>
                   </Flex>
                 </Box>
