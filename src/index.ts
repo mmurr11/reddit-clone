@@ -34,14 +34,14 @@ const main = async () => {
     })
     await conn.runMigrations()
 
-    // await Updoot.delete({})
-    // await Post.delete({})
-
     const app = express()
     const httpServer = http.createServer(app);
     
     const redis = new Redis()
     await redis.connect().catch(console.error);
+
+    app.set('trust proxy', 1)
+
     app.use(
         cors({
             origin: "http://localhost:3000",

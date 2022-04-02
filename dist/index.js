@@ -40,6 +40,7 @@ const main = async () => {
     const httpServer = http_1.default.createServer(app);
     const redis = new ioredis_1.default();
     await redis.connect().catch(console.error);
+    app.set('trust proxy', 1);
     app.use(cors_1.default({
         origin: "http://localhost:3000",
         credentials: true
