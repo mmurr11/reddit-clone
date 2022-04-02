@@ -22,14 +22,19 @@ const Index = () => {
     cursor: null as null | string,
   });
 
-  const [{ data, fetching }] = usePostsQuery({
+  const [{ data, error, fetching }] = usePostsQuery({
     variables,
   });
 
   const [, deletePost] = useDeletePostMutation();
 
   if (!fetching && !data) {
-    return <div>No posts found. Try refreshing the page</div>;
+    return (
+      <div>
+        <div>No posts found. Try refreshing the page</div>
+        <div>{error?.message}</div>
+      </div>
+    );
   }
 
   return (
