@@ -6,6 +6,9 @@ Next.js, Redis, TypeOrm and Postgresql.
 
 ## How to use
 
+To start, you must have Postgresql and Redis set up on your device,
+then, clone this repo and run these commands...
+
 ```console
     cd server/
 ```
