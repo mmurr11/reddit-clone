@@ -36,5 +36,11 @@ then
 finally
 
 ```console
+    npm run dev
+```
+
+or
+
+```console
     yarn dev
 ```
