@@ -1,0 +1,8 @@
+{
+  "name": "fake-reddit-1",
+  "description": "CRUD operations on a fake reddit",
+  "version": "1.0.0",
+  "engines": {
+    "node": "17.7.1"
+  }
+}
