@@ -7,11 +7,27 @@
     "yarn": "1.22.15"
   },
   "dependencies": {
+    "@types/node": "^17.0.23",
     "ts-node": "10.7.0",
     "typescript": "^3.9.7"
   },
   "scripts": {
-    "postinstall": "tsc",
+    "postinstall": "tsc ./server/",
     "start": "cross-env NODE_ENV=production node server/dist/index.js"
-  }
+  },
+  "main": "server/dist/index.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mmurr11/reddit-clone.git"
+  },
+  "keywords": [
+    "heroku"
+  ],
+  "author": "Matthew Murray",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mmurr11/reddit-clone/issues"
+  },
+  "homepage": "https://github.com/mmurr11/reddit-clone#readme"
 }

@@ -1,8 +1,10 @@
 import 'reflect-metadata'
+import "dotenv-safe/config";
 import { __prod__, COOKIE_NAME } from './constants';
 import express from 'express'
 import { ApolloServer } from'apollo-server-express'
 import http from 'http';
+import "dotenv-safe/config";
 import { buildSchema } from 'type-graphql'
 import { HelloResolver } from './resolvers/hello';
 import { PostResolver } from './resolvers/post';
@@ -24,11 +26,9 @@ const main = async () => {
 
     const conn = await createConnection({
         type: 'postgres',
-        database: 'lireddit2',
-        username: 'postgres',
-        password: 'postgres',
+        url: process.env.DATABASE_URL,
         logging: true,
-        synchronize: true,
+        // synchronize: true,
         migrations: [path.join(__dirname, './migrations/*')],
         entities: [Post, User, Updoot]
     })
@@ -37,14 +37,14 @@ const main = async () => {
     const app = express()
     const httpServer = http.createServer(app);
     
-    const redis = new Redis()
+    const redis = new Redis(process.env.REDIS_URL);
     await redis.connect().catch(console.error);
 
     app.set('trust proxy', 1)
 
     app.use(
         cors({
-            origin: "http://localhost:3000",
+            origin: process.env.CORS_ORIGIN,
             credentials: true
         })
     )
@@ -61,11 +61,11 @@ const main = async () => {
                     httpOnly: true,
                     sameSite: "lax",
                     secure: __prod__,
-                    domain:'.localhost',
+                    domain: __prod__ ? 'fake-reddit-1.herokuapp.com' : undefined,
                     path: "/",
                 },
             saveUninitialized: false,
-            secret: 'keyboard cat',
+            secret: process.env.SECRET_KEY,
             resave: false,
         }),
     )
@@ -92,7 +92,7 @@ const main = async () => {
             app,
             cors: false
         });
-        await new Promise<void>(resolve => httpServer.listen({ port: 4000 }, resolve));
+        await new Promise<void>(resolve => httpServer.listen({ port: parseInt(process.env.PORT) }, resolve));
         console.log(`🚀 Server ready at http://localhost:4000${apolloServer.graphqlPath}`);
     } 
 
