@@ -65,7 +65,6 @@ const main = async () => {
                     sameSite: "lax",
                     secure: __prod__,
                     domain: __prod__ ? 'fake-reddit-1.herokuapp.com' : undefined,
-                    path: "/",
                 },
             saveUninitialized: false,
             secret: process.env.SECRET_KEY,
@@ -89,6 +88,7 @@ const main = async () => {
             plugins: [
                 ApolloServerPluginLandingPageGraphQLPlayground(),
             ],
+            introspection: true
         })
         await apolloServer.start();
         apolloServer.applyMiddleware({ 
