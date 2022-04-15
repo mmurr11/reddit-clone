@@ -1,6 +1,14 @@
 {
   "/_app": "pages/_app.js",
+  "/change-password/[token]": "pages/change-password/[token].html",
+  "/create-post": "pages/create-post.html",
+  "/forgot-password": "pages/forgot-password.html",
+  "/": "pages/index.js",
+  "/login": "pages/login.html",
+  "/post/[id]": "pages/post/[id].js",
+  "/post/edit/[id]": "pages/post/edit/[id].html",
+  "/register": "pages/register.html",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/": "pages/index.js"
+  "/404": "pages/404.html"
 }
