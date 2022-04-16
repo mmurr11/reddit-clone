@@ -43,7 +43,7 @@ const main = async () => {
     const redis = new Redis(process.env.REDIS_URL);
     await redis.connect().catch(console.error);
 
-    app.set('trust proxy', 1)
+    app.set("trust proxy", 1)
 
     app.use(
         cors({
@@ -62,12 +62,11 @@ const main = async () => {
                 cookie: {
                     maxAge: 1000 * 60 * 60 * 24 * 365 * 10, //10 yrs
                     httpOnly: true,
-                    sameSite: "lax",
-                    secure: __prod__,
-                    domain: __prod__ ? 'fake-reddit-1.herokuapp.com' : undefined,
+                    sameSite: "none",
+                    secure: true,
                 },
             saveUninitialized: false,
-            secret: process.env.SECRET_KEY,
+            secret: process.env.SESSION_SECRET,
             resave: false,
         }),
     )
@@ -88,7 +87,7 @@ const main = async () => {
             plugins: [
                 ApolloServerPluginLandingPageGraphQLPlayground(),
             ],
-            introspection: true
+            introspection: true,
         })
         await apolloServer.start();
         apolloServer.applyMiddleware({ 
@@ -100,5 +99,6 @@ const main = async () => {
     } 
 
 
-
-main()
+main().catch((err) => {
+  console.error(err);
+});
